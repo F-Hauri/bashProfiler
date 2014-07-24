@@ -4,30 +4,49 @@
 # minimal footprint. This method use only two forks and
 # do render trace at end of whole job.
 
-shTrace() {
-    shlfle=$(mktemp /dev/shm/recomp-XXXXXXXXXX.log||exit 1)
-    exec 29>$shlfle
-    rm $shlfle
+_shUsage() {
+    cat <<-eousage
+	Usage: $0 [-h] [-w integer] [-p integer]
+	    -h show this help.
+	    -w max wait time in seconds for all childs process to finish
+	    -p precision: length of time's fractional part
+	eousage
+}
+_shTrace() {
+    local OPTIND
+    while getopts "hw:p:" _shCrt;do
+	if [ "$_shCrt" = "h" ] ;then
+	    _shUsage
+	    exit 0
+	fi; done;
+    local _shLogFile=$(mktemp /dev/shm/shProfiler-XXXXXXXXXX.log||exit 1)
+    exec 29>$_shLogFile
+    rm $_shLogFile
     exec 28</dev/fd/29
-    shtfle=$(mktemp /dev/shm/recomp-XXXXXXXXXX.tim||exit 1)
-    exec 30>$shtfle
-    rm $shtfle
+    local _shTimeFile=$(mktemp /dev/shm/shProfiler-XXXXXXXXXX.tim||exit 1)
+    exec 30>$_shTimeFile
+    rm $_shTimeFile
     exec 27</dev/fd/30
     exec 31> >(
-        tee /dev/fd/29 |
-            sed -u 's/.*/now/' |
-            date -f - +%s%N >&30
+	tee /dev/fd/29 |
+	    sed -u 's/.*/now/' |
+	    date -f - +%s%N >&30
     )
-    trap printLog 0 1 2 3 6 9 15
+    trap "_printLog $*" 0 1 2 3 6 9 15
     BASH_XTRACEFD=31
     set -x
 }
-printLog() {
+_printLog() {
     set +x
-    local last= tim= crt= tot=0 pc=0000000000 pt=0000000000 \
-        fmtstr="%15.9f %15.9f  %s\n" count=100
+    local _shLast= _shTim= _shCrt= _shTot=0 _shC=0000000000 _shT=0000000000 \
+	_shCnt=100 _shFmtStr= _shLogLine= _shNumLen=9 _shFracLen=5
+    while getopts "hw:p:" _shCrt;do case $_shCrt in
+	    w ) _shCnt=$[10*OPTARG] ;;
+	    p ) _shFracLen=$[OPTARG];;
+	    * ) printf >&2 "Error: %s: Argument '%s' unknown.\n" $0 $_shCrt;;
+	esac; done;
     # Delay upto 10 second if there are unfinished childs
-    while [ $(jobs -p|wc -l) -gt 0 ] && ((count--)) ;do
+    while [ $(jobs -p|wc -l) -gt 0 ] && ((_shCnt--)) ;do
         sleep .1
     done
     # Print unfinished jobs if any
@@ -35,19 +54,24 @@ printLog() {
     # Close trace FD
     exec 31>&-
     sync
-    # Whipe 1st null line.
-    read -u 27 last
-    while read -u 27 tim ;do
-        read -u 28 line
-        crt=$[ tim-last ]
-        ((tot+=crt))
-        pc=0000000000$crt pt=0000000000$tot
-        printf "$fmtstr" ${pc:0:${#pc}-9}.${pc:${#pc}-9} \
-            ${pt:0:${#pt}-9}.${pt:${#pt}-9} "$line"
-        ((last=tim))
+    # Whipe 1st null line, take base time.
+    read -u 27 _shLast
+    printf -v _shNumLen "%(%s)T-%s\n" -1 ${_shLast:0:${#_shLast}-9}
+    _shNumLen=$[_shNumLen]
+    _shNumLen=$[1+${#_shNumLen}+_shFracLen]
+    printf -v _shFmtStr "%%%d.%df %%%d.%df  %%s\\n" \
+	$_shNumLen $_shFracLen $_shNumLen $_shFracLen
+    while read -u 27 _shTim ;do
+	read -u 28 _shLogLine
+        _shCrt=$[ _shTim-_shLast ]
+        ((_shTot+=_shCrt))
+    	_shC=0000000000$_shCrt _shT=0000000000$_shTot
+        printf "$_shFmtStr" ${_shC:0:${#_shC}-9}.${_shC:${#_shC}-9} \
+    	    ${_shT:0:${#_shT}-9}.${_shT:${#_shT}-9} "$_shLogLine"
+        ((_shLast=_shTim))
     done 
-    printf "$fmtstr" ${pt:0:${#pt}-9}.${pt:${#pt}-9}{,} Total
+    printf "$_shFmtStr" ${_shT:0:${#_shT}-9}.${_shT:${#_shT}-9}{,} Total
     exec 27>&- 28>&- 29>&- 30>&- 31>&-
     exit
 }
-shTrace
+_shTrace $@
