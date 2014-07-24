@@ -1,0 +1,4 @@
+bashProfiler
+============
+
+bash profiler function
