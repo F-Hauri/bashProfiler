@@ -14,14 +14,16 @@ This method use only two forks and do render trace at end of whole job.
 
 Usage:
 ------
-  bash [-h] [-w integer ] [-p integer ]
-    -h show this help.
-    -w max wait time in seconds for childs process to finish
-    -p precision: length of time's fractional part
+
+    bash [-h] [-w integer ] [-p integer ]
+      -h show this help.
+      -w max wait time in seconds for childs process to finish
+      -p precision: length of time's fractional part
 
 Simply add `souce profiler.bash` at begin of your script,
 or run:
-    `bash -c "source profiler.bash;source myScriptToProfile"`
+
+    bash -c "source profiler.bash;source myScriptToProfile"
 
 Bug
 ---
