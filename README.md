@@ -28,9 +28,9 @@ or run:
 Bug
 ---
 
-Childs are not profiled, nor sumarized. The only argument `w' let you precise
+Childs are not profiled, nor sumarized. The only argument `-w` let you precise
 a max wait time until all childs finish (my loop could maybe be replaced by
-`wait' builtin, but it's not well tested.).
+`wait` builtin, but it's not well tested.).
 
 Sample run
 ----------
