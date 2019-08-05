@@ -1,6 +1,14 @@
 bashProfiler
 ============
 
+Copying:
+--------
+
+As bash, this stuff is licensed under GNU GPL v3.0 or later.
+
+Introduction:
+-------------
+
 Bash profiler function ``shTrace'' (was  Elap-bash V3):
 After initialy try to use /proc/timer_list and some
 tests and comparission, (you may find them there:
@@ -32,8 +40,8 @@ Childs are not profiled, nor sumarized. The only argument `-w` let you precise
 a max wait time until all childs finish (my loop could maybe be replaced by
 `wait` builtin, but it's not well tested.).
 
-Sample run
-----------
+Sample/test run
+---------------
 
     bash -c ". profiler.bash;echo hi there;sleep 1&sleep .2;echo done"
     hi there
