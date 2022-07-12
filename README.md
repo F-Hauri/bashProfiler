@@ -16,7 +16,7 @@ understand some of the reasons why GitHub is not a good place to host FOSS
 projects.
 
 If you are a contributor who personally has already quit using GitHub, please
-[send mail to gitproj@f-hauri.ch](mailto://gitproj@f-hauri.ch) for any comment
+[send mail to gitproj@f-hauri.ch](mailto:gitproj@f-hauri.ch) for any comment
 or contributions without using GitHub directly.
 
 Any use of this project's code by GitHub Copilot, past or present, is done
